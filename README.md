@@ -11,7 +11,8 @@ node server.js
 ```
 
 The app serves `/public_html` when deployed, but you can open `index.html` directly for a static preview.  
-Image assets are embedded as data URIs so no binary files are required.
+All images are embedded directly in the HTML/CSS as data URIs so no binary
+assets need to be tracked in the repository.
 
 ## Environment variables
 

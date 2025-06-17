@@ -5,16 +5,17 @@ import 'dotenv/config';
 import express     from 'express';
 import cors        from 'cors';
 import nodemailer  from 'nodemailer';
-import { OpenAI }  from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import path        from 'node:path';
 import { fileURLToPath } from 'node:url';
+import fs          from 'node:fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /* ───────────── 1 | Init ───────────── */
 const app    = express();
 const PORT   = process.env.PORT || 5000;
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -23,6 +24,26 @@ app.use(express.json());
    If you don’t host public_html separately (e.g. Netlify),
    drop the folder one level above and uncomment the line below.   */
 // app.use('/', express.static(path.join(__dirname, '..', 'public_html')));
+
+/* ───────────── 3 | Store basic signup info ───────────── */
+const USERS_FILE = path.join(__dirname, 'clients.json');
+
+app.post('/api/signup', async (req, res) => {
+  const email = req.body?.email;
+  if (!email) return res.status(400).end();
+  try {
+    let existing = [];
+    try { existing = JSON.parse(await fs.readFile(USERS_FILE, 'utf8')); } catch {}
+    if (!existing.includes(email)) {
+      existing.push(email);
+      await fs.writeFile(USERS_FILE, JSON.stringify(existing, null, 2));
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).end();
+  }
+});
 
 /* ───────────── 3 | Chat → GPT and e-mail copy ───────────── */
 app.post('/api/chat', async (req, res) => {
@@ -46,18 +67,19 @@ Return:
 Strictly ≤ 200 words.
     `.trim();
 
-    /* 3.2  Call OpenAI */
-    const gpt = await openai.chat.completions.create({
-      model:   process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      max_tokens: 350,
-      temperature: 0.4,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user',   content: prompt }
-      ]
+    /* 3.2  Call Gemini */
+    const model = genAI.getGenerativeModel({
+      model: process.env.GEMINI_MODEL || 'gemini-1.5-pro',
     });
 
-    const reply = gpt.choices[0].message.content.trim();
+    const result = await model.generateContent({
+      contents: [
+        { role: 'user', parts: [{ text: `${system}\n\n${prompt}` }] }
+      ],
+      generationConfig: { maxOutputTokens: 350, temperature: 0.4 },
+    });
+
+    const reply = result.response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
     /* 3.3  Fire-and-forget e-mail to internal lab inbox */
     sendMail({

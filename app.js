@@ -4,6 +4,7 @@ const sendBtn  = document.getElementById('sendBtn');
 const userMsg  = document.getElementById('userMsg');
 let currentUser = localStorage.getItem('userEmail');
 let currentName = localStorage.getItem('userName');
+let currentUser = null;
 
 sendBtn.onclick = send;
 userMsg.addEventListener('keydown',e=>{ if(e.key==='Enter') send(); });
@@ -69,6 +70,25 @@ signForm.onsubmit = async e => {
   nameInput.value='';
   localStorage.setItem('userEmail', email);
   if(name) localStorage.setItem('userName', name);
+=======
+const loginBtn  = document.getElementById('loginBtn');
+const authModal = document.getElementById('authModal');
+const closeBtn  = document.querySelector('.modal__close');
+const signForm  = document.getElementById('signInForm');
+const emailInput= document.getElementById('emailInput');
+const chatHint  = document.querySelector('.chatbox__hint');
+
+loginBtn.onclick = () => { authModal.classList.remove('hidden'); emailInput.focus(); };
+closeBtn.onclick  = closeAuth;
+
+signForm.onsubmit = async e => {
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  if(!email) return;
+  currentUser = email;
+  chatHint.textContent = `👋 Welcome ${email}! Tell us about your sample to receive a quote.`;
+  authModal.classList.add('hidden');
+  emailInput.value='';
   try{
     await fetch('/api/signup',{
       method:'POST',
@@ -92,4 +112,8 @@ function handleAuthBtn(){
   }
 }
 
+      body:JSON.stringify({email})
+    });
+  }catch(e){}
+};
 function closeAuth(){ authModal.classList.add('hidden'); }

@@ -10,7 +10,8 @@ cp env.example .env        # edit with your credentials
 node server.js
 ```
 
-The app serves `/public_html` when deployed, but you can open `index.html` directly for static preview.
+The app serves `/public_html` when deployed, but you can open `index.html` directly for a static preview.  
+Image assets are embedded as data URIs so no binary files are required.
 
 ## Environment variables
 
@@ -19,4 +20,4 @@ The app serves `/public_html` when deployed, but you can open `index.html` direc
 - `GEMINI_MODEL` – model name, e.g. `gemini-1.5-pro`
 - SMTP settings (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL`) for contact emails
 
-User e‑mails collected via sign‑in are stored in `clients.json`.
+User names and e‑mails collected via sign‑up are stored in `clients.json`.

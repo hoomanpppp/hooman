@@ -1,8 +1,8 @@
-/******************* CHAT + AUTH ONLY  *******************
-   All diagram-tooltip code removed.                  */
+/***** Simple chat and local email signup *****/
 const chatlog = document.getElementById('chatlog');
-const sendBtn = document.getElementById('sendBtn');
-const userMsg = document.getElementById('userMsg');
+const sendBtn  = document.getElementById('sendBtn');
+const userMsg  = document.getElementById('userMsg');
+let currentUser = null;
 
 sendBtn.onclick = send;
 userMsg.addEventListener('keydown',e=>{ if(e.key==='Enter') send(); });
@@ -13,63 +13,48 @@ async function send(){
   push('user', txt);
   userMsg.value=''; userMsg.focus();
   const stub = push('assistant','…');
-
   try{
-    const res  = await fetch('/api/chat',{
+    const res = await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        prompt:txt,
-        user:firebase.auth().currentUser?.email||'web'
-      })
+      body:JSON.stringify({prompt:txt, user:currentUser||'web'})
     });
     const data = await res.json();
     stub.textContent = data.reply || '⚠️ No response';
-  }catch(e){
-    stub.textContent = '⚠️ Server error';
-  }
+  }catch(e){ stub.textContent = '⚠️ Server error'; }
 }
 function push(role,msg){
-  const div = document.createElement('div');
-  div.className = `bubble ${role}`;
-  div.textContent = msg;
-  chatlog.appendChild(div);
-  chatlog.scrollTop = chatlog.scrollHeight;
-  return div;
+  const div=document.createElement('div');
+  div.className='bubble '+role;
+  div.textContent=msg;
+  chatlog.appendChild(div);chatlog.scrollTop=chatlog.scrollHeight;return div;
 }
 
-/*************** Firebase email-link auth ***************/
-const fbCfg = {
-  apiKey:     "YOUR-FIREBASE-API-KEY",
-  authDomain: "YOUR-PROJECT.firebaseapp.com",
-  projectId:  "YOUR-PROJECT",
+/***** Basic e-mail sign in *****/
+const loginBtn  = document.getElementById('loginBtn');
+const authModal = document.getElementById('authModal');
+const closeBtn  = document.querySelector('.modal__close');
+const signForm  = document.getElementById('signInForm');
+const emailInput= document.getElementById('emailInput');
+const chatHint  = document.querySelector('.chatbox__hint');
+
+loginBtn.onclick = () => { authModal.classList.remove('hidden'); emailInput.focus(); };
+closeBtn.onclick  = closeAuth;
+
+signForm.onsubmit = async e => {
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  if(!email) return;
+  currentUser = email;
+  chatHint.textContent = `👋 Welcome ${email}! Tell us about your sample to receive a quote.`;
+  authModal.classList.add('hidden');
+  emailInput.value='';
+  try{
+    await fetch('/api/signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+  }catch(e){}
 };
-firebase.initializeApp(fbCfg);
-
-const ui = new firebaseui.auth.AuthUI(firebase.auth());
-document.getElementById('loginBtn').onclick = openAuth;
-document.querySelector('.modal__close').onclick = closeAuth;
-
-function openAuth(){
-  document.getElementById('authModal').classList.remove('hidden');
-  ui.start('#firebaseui-auth-container',{
-    signInOptions:[firebase.auth.EmailAuthProvider.PROVIDER_ID],
-    credentialHelper:firebaseui.auth.CredentialHelper.NONE,
-    callbacks:{ signInSuccessWithAuthResult }
-  });
-}
-function signInSuccessWithAuthResult(){
-  closeAuth();
-  const user = firebase.auth().currentUser;
-  document.querySelector('.chatbox__hint').textContent =
-      `👋 Welcome ${user.email}! Tell us about your sample to receive a quote.`;
-  fetch('/api/signup',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:user.email})
-  }).catch(()=>{});
-  return false;
-}
-function closeAuth(){
-  document.getElementById('authModal').classList.add('hidden');
-}
+function closeAuth(){ authModal.classList.add('hidden'); }

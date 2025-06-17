@@ -91,4 +91,5 @@ function handleAuthBtn(){
     emailInput.focus();
   }
 }
+
 function closeAuth(){ authModal.classList.add('hidden'); }

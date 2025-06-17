@@ -63,6 +63,11 @@ function signInSuccessWithAuthResult(){
   const user = firebase.auth().currentUser;
   document.querySelector('.chatbox__hint').textContent =
       `👋 Welcome ${user.email}! Tell us about your sample to receive a quote.`;
+  fetch('/api/signup',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:user.email})
+  }).catch(()=>{});
   return false;
 }
 function closeAuth(){

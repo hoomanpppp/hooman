@@ -2,7 +2,8 @@
 const chatlog = document.getElementById('chatlog');
 const sendBtn  = document.getElementById('sendBtn');
 const userMsg  = document.getElementById('userMsg');
-let currentUser = null;
+let currentUser = localStorage.getItem('userEmail');
+let currentName = localStorage.getItem('userName');
 
 sendBtn.onclick = send;
 userMsg.addEventListener('keydown',e=>{ if(e.key==='Enter') send(); });
@@ -31,29 +32,40 @@ function push(role,msg){
 }
 
 /***** Basic e-mail sign in *****/
-const loginBtn  = document.getElementById('loginBtn');
+const authBtns   = [document.getElementById('authBtn'), document.getElementById('authBtnFooter')];
 const authModal = document.getElementById('authModal');
 const closeBtn  = document.querySelector('.modal__close');
-const signForm  = document.getElementById('signInForm');
+const signForm  = document.getElementById('authForm');
+const nameInput = document.getElementById('nameInput');
 const emailInput= document.getElementById('emailInput');
 const chatHint  = document.querySelector('.chatbox__hint');
 
-loginBtn.onclick = () => { authModal.classList.remove('hidden'); emailInput.focus(); };
+if(currentUser){
+  const name = currentName || currentUser;
+  chatHint.textContent = `👋 Welcome back ${name}! Ask anything about your sample.`;
+}
+
+authBtns.forEach(btn => btn.onclick = () => { authModal.classList.remove('hidden'); emailInput.focus(); });
 closeBtn.onclick  = closeAuth;
 
 signForm.onsubmit = async e => {
   e.preventDefault();
+  const name = nameInput.value.trim();
   const email = emailInput.value.trim();
   if(!email) return;
   currentUser = email;
-  chatHint.textContent = `👋 Welcome ${email}! Tell us about your sample to receive a quote.`;
+  currentName = name || email;
+  chatHint.textContent = `👋 Welcome ${currentName}! Tell us about your sample to receive a quote.`;
   authModal.classList.add('hidden');
   emailInput.value='';
+  nameInput.value='';
+  localStorage.setItem('userEmail', email);
+  if(name) localStorage.setItem('userName', name);
   try{
     await fetch('/api/signup',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email})
+      body:JSON.stringify({email, name})
     });
   }catch(e){}
 };

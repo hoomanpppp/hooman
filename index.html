@@ -13,10 +13,11 @@
     <img src="img/logo.svg" alt="ZOLX logo" class="hero__logo">
     <h1 class="hero__title">Circular bio-manufacturing & analytical science</h1>
     <div class="hero-images">
-      <img src="img/process-infographic.svg" alt="Process infographic">
-      <img src="img/module-container.svg" alt="Cultivation container">
+      <img src="img/process-infographic.svg" alt="Process infographic" class="hero__img">
+      <img src="img/module-container.svg" alt="Cultivation container" class="hero__img">
     </div>
     <p class="hero__subtitle">On-site Azolla cultivation removes nutrients + CO₂ → extracts become omega‑3 oils, proteins & green carbon.</p>
+    <button id="authBtn" class="btn btn--primary hero__cta">Sign up / in</button>
   </header>
 
   <section id="services" class="section">
@@ -38,21 +39,24 @@
         <input id="userMsg" placeholder="Describe your sample…" autocomplete="off">
         <button id="sendBtn">Send</button>
       </div>
-      <p class="chatbox__hint">Sign in to get a quote & keep history.</p>
+      <p class="chatbox__hint">Sign up or sign in to get a quote & keep history.</p>
     </div>
   </section>
 
   <footer class="footer">
     <p>© 2025 ZOLX Inc.</p>
-    <button id="loginBtn" class="btn btn--ghost">Sign in</button>
+    <button id="authBtnFooter" class="btn btn--ghost">Sign up / in</button>
   </footer>
 
   <div id="authModal" class="modal hidden">
-    <form id="signInForm" class="sign-form">
+    <form id="authForm" class="sign-form">
+      <label>Name
+        <input id="nameInput" required>
+      </label>
       <label>Email
         <input id="emailInput" type="email" required>
       </label>
-      <button type="submit" class="btn btn--primary">Sign in</button>
+      <button type="submit" class="btn btn--primary">Continue</button>
     </form>
     <button class="modal__close">×</button>
   </div>

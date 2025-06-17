@@ -30,12 +30,13 @@ const USERS_FILE = path.join(__dirname, 'clients.json');
 
 app.post('/api/signup', async (req, res) => {
   const email = req.body?.email;
+  const name  = req.body?.name || '';
   if (!email) return res.status(400).end();
   try {
     let existing = [];
     try { existing = JSON.parse(await fs.readFile(USERS_FILE, 'utf8')); } catch {}
-    if (!existing.includes(email)) {
-      existing.push(email);
+    if (!existing.some(u => u.email === email)) {
+      existing.push({ email, name, date: new Date().toISOString() });
       await fs.writeFile(USERS_FILE, JSON.stringify(existing, null, 2));
     }
     res.json({ ok: true });
